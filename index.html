@@ -1,1 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spybose - Racha Real</title>
+    <style>
+        :root {
+            --duo-green: #58cc02;
+            --duo-blue: #1cb0f6;
+            --duo-orange: #ff9600;
+            --duo-border: #e5e5e5;
+        }
 
+        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        
+        header {
+            width: 100%; max-width: 500px; padding: 15px;
+            display: flex; justify-content: space-around;
+            border-bottom: 2px solid var(--duo-border);
+            position: sticky; top: 0; background: white;
+        }
+
+        .stat { font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 5px; }
+        .streak-fire { color: var(--duo-orange); }
+        .streak-gray { color: #ccc; } /* Racha apagada */
+
+        .container { width: 100%; max-width: 500px; padding: 20px; padding-bottom: 80px; }
+        .screen { display: none; }
+        .active { display: block; }
+
+        /* Estilo Duolingo */
+        .node {
+            width: 80px; height: 75px; border-radius: 50%; border: none;
+            background: var(--duo-green); box-shadow: 0 8px 0 #46a302;
+            color: white; font-size: 1.5rem; cursor: pointer;
+            margin: 20px auto; display: block; transition: 0.1s;
+        }
+        .node:active { transform: translateY(4px); box-shadow: 0 4px 0 #46a302; }
+
+        .wardrobe { text-align: center; }
+        .avatar-main { font-size: 4rem; background: #eee; width: 120px; height: 120px; line-height: 120px; border-radius: 50%; margin: 20px auto; border: 4px solid var(--duo-blue); }
+        
+        .items { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .item-card { border: 2px solid var(--duo-border); padding: 15px; border-radius: 15px; cursor: pointer; }
+
+        nav {
+            position: fixed; bottom: 0; width: 100%; max-width: 500px;
+            background: white; border-top: 2px solid var(--duo-border);
+            display: flex; justify-content: space-around; padding: 10px 0;
+        }
+        .nav-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #ccc; }
+        .nav-btn.active { color: var(--duo-blue); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div id="streak-stat" class="stat streak-gray">🔥 <span id="racha-num">0</span></div>
+        <div class="stat" style="color:var(--duo-blue)">💎 <span id="gemas-num">100</span></div>
+    </header>
+
+    <div class="container">
+        <div id="home" class="screen active">
+            <h2 style="text-align:center">Lecciones de Hoy</h2>
+            <button class="node" onclick="hacerLeccion()">📖</button>
+            <p id="msg-tiempo" style="text-align:center; font-size: 0.8rem; color: gray;"></p>
+        </div>
+
+        <div id="shop" class="screen wardrobe">
+            <h2>Vestidor</h2>
+            <div class="avatar-main" id="avatar-img">🦉</div>
+            <div class="items">
+                <div class="item-card" onclick="setAvatar('🦉')">Original</div>
+                <div class="item-card" onclick="setAvatar('🦊')">Zorro</div>
+                <div class="item-card" onclick="setAvatar('🦖')">Dino</div>
+                <div class="item-card" onclick="setAvatar('🥷')">Ninja</div>
+            </div>
+        </div>
+    </div>
+
+    <nav>
+        <button class="nav-btn active" onclick="ver('home', this)">🏠</button>
+        <button class="nav-btn" onclick="ver('shop', this)">👕</button>
+    </nav>
+
+    <script>
+        // Cargar datos guardados
+        let racha = parseInt(localStorage.getItem('racha')) || 0;
+        let ultimaVez = localStorage.getItem('ultimaVez'); // Guardamos la fecha en milisegundos
+
+        function actualizarUI() {
+            document.getElementById('racha-num').innerText = racha;
+            const streakStat = document.getElementById('streak-stat');
+            
+            // Si la racha es mayor a 0, poner el fuego naranja
+            if (racha > 0) {
+                streakStat.className = "stat streak-fire";
+            } else {
+                streakStat.className = "stat streak-gray";
+            }
+        }
+
+        function revisarRacha() {
+            if (ultimaVez) {
+                let ahora = new Date().getTime();
+                let diferenciaHoras = (ahora - ultimaVez) / (1000 * 60 * 60);
+
+                // Si pasaron más de 24 horas, la racha vuelve a 0
+                if (diferenciaHoras > 24) {
+                    racha = 0;
+                    localStorage.setItem('racha', 0);
+                    alert("¡Oh no! Pasaron más de 24 horas y perdiste tu racha. 😢");
+                }
+                
+                document.getElementById('msg-tiempo').innerText = "Última práctica: hace " + Math.floor(diferenciaHoras) + " horas";
+            }
+            actualizarUI();
+        }
+
+        function hacerLeccion() {
+            racha++;
+            ultimaVez = new Date().getTime(); // Guardar hora actual
+            
+            localStorage.setItem('racha', racha);
+            localStorage.setItem('ultimaVez', ultimaVez);
+            
+            actualizarUI();
+            alert("¡Muy bien! Racha de " + racha + " días.");
+        }
+
+        function ver(id, btn) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function setAvatar(e) {
+            document.getElementById('avatar-img').innerText = e;
+        }
+
+        // Ejecutar al abrir la app
+        revisarRacha();
+    </script>
+</body>
+</html>
