@@ -3,145 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spybose - Racha Real</title>
+    <title>Spybose - Selección de Ruta</title>
     <style>
         :root {
             --duo-green: #58cc02;
             --duo-blue: #1cb0f6;
+            --duo-purple: #ce82ff;
             --duo-orange: #ff9600;
+            --duo-red: #ff4b4b;
             --duo-border: #e5e5e5;
         }
 
-        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fff; color: #3c3c3c; display: flex; flex-direction: column; align-items: center; }
         
         header {
-            width: 100%; max-width: 500px; padding: 15px;
-            display: flex; justify-content: space-around;
-            border-bottom: 2px solid var(--duo-border);
-            position: sticky; top: 0; background: white;
+            width: 100%; max-width: 500px; padding: 15px; border-bottom: 2px solid var(--duo-border);
+            display: flex; justify-content: space-around; position: sticky; top: 0; background: white; z-index: 100;
         }
 
-        .stat { font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 5px; }
-        .streak-fire { color: var(--duo-orange); }
-        .streak-gray { color: #ccc; } /* Racha apagada */
+        .stat { font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 5px; }
+        .streak-on { color: var(--duo-orange); animation: flame 0.6s infinite alternate; }
+        @keyframes flame { from { transform: scale(1); } to { transform: scale(1.1); } }
 
-        .container { width: 100%; max-width: 500px; padding: 20px; padding-bottom: 80px; }
-        .screen { display: none; }
+        .container { width: 100%; max-width: 500px; padding-bottom: 100px; }
+        .screen { display: none; padding: 20px; text-align: center; }
         .active { display: block; }
 
-        /* Estilo Duolingo */
+        /* ESTILO OPCIONES DE CATÁLOGO */
+        .lang-card {
+            display: flex; align-items: center; width: 100%; padding: 20px; margin: 15px 0;
+            border: 2px solid var(--duo-border); border-radius: 15px;
+            background: white; cursor: pointer; font-size: 1.3rem; font-weight: bold;
+            transition: 0.2s;
+        }
+        .lang-card:hover { background: #f7f7f7; border-color: var(--duo-blue); transform: translateY(-3px); }
+        .flag { font-size: 2rem; margin-right: 15px; }
+
+        /* RUTA DE LECCIONES */
+        .path-map { display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
         .node {
-            width: 80px; height: 75px; border-radius: 50%; border: none;
-            background: var(--duo-green); box-shadow: 0 8px 0 #46a302;
-            color: white; font-size: 1.5rem; cursor: pointer;
-            margin: 20px auto; display: block; transition: 0.1s;
+            width: 75px; height: 70px; border-radius: 50%; border: none;
+            background: var(--duo-green); box-shadow: 0 7px 0 #46a302;
+            color: white; font-size: 1.5rem; cursor: pointer; margin: 10px 0; transition: 0.1s;
         }
-        .node:active { transform: translateY(4px); box-shadow: 0 4px 0 #46a302; }
+        .node:active { transform: translateY(4px); box-shadow: 0 3px 0 #46a302; }
+        .connector { width: 10px; height: 25px; background: var(--duo-border); margin: -5px 0; }
 
-        .wardrobe { text-align: center; }
-        .avatar-main { font-size: 4rem; background: #eee; width: 120px; height: 120px; line-height: 120px; border-radius: 50%; margin: 20px auto; border: 4px solid var(--duo-blue); }
-        
-        .items { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .item-card { border: 2px solid var(--duo-border); padding: 15px; border-radius: 15px; cursor: pointer; }
-
-        nav {
-            position: fixed; bottom: 0; width: 100%; max-width: 500px;
-            background: white; border-top: 2px solid var(--duo-border);
-            display: flex; justify-content: space-around; padding: 10px 0;
+        /* JUEGO */
+        .progress-bar { width: 100%; background: #eee; height: 12px; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        #progress-fill { width: 0%; background: var(--duo-green); height: 100%; transition: 0.4s; }
+        .option-btn {
+            display: block; width: 100%; padding: 15px; margin: 10px 0;
+            border: 2px solid var(--duo-border); border-radius: 15px;
+            background: white; font-weight: bold; cursor: pointer;
         }
-        .nav-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #ccc; }
+
+        /* VESTIDOR */
+        .avatar-preview { font-size: 5rem; background: #f0f0f0; width: 120px; height: 120px; line-height: 120px; border-radius: 50%; margin: 10px auto; border: 4px solid var(--duo-blue); }
+        .skin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .skin-item { border: 2px solid var(--duo-border); padding: 10px; border-radius: 12px; cursor: pointer; }
+
+        /* NAV */
+        nav { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: white; border-top: 2px solid var(--duo-border); display: flex; justify-content: space-around; padding: 12px 0; }
+        .nav-btn { background: none; border: none; font-size: 1.7rem; cursor: pointer; color: #ccc; }
         .nav-btn.active { color: var(--duo-blue); }
     </style>
 </head>
 <body>
 
     <header>
-        <div id="streak-stat" class="stat streak-gray">🔥 <span id="racha-num">0</span></div>
-        <div class="stat" style="color:var(--duo-blue)">💎 <span id="gemas-num">100</span></div>
+        <div id="streak-ui" class="stat">🔥 <span id="racha-val">0</span></div>
+        <div class="stat" style="color:var(--duo-red)">❤️ <span id="vidas-val">5</span></div>
+        <div class="stat" style="color:var(--duo-blue)">💎 <span id="gemas-val">100</span></div>
     </header>
 
     <div class="container">
-        <div id="home" class="screen active">
-            <h2 style="text-align:center">Lecciones de Hoy</h2>
-            <button class="node" onclick="hacerLeccion()">📖</button>
-            <p id="msg-tiempo" style="text-align:center; font-size: 0.8rem; color: gray;"></p>
+        <!-- PANTALLA 1: CATÁLOGO DE IDIOMAS -->
+        <div id="screen-catalog" class="screen active">
+            <h2>Elige tu ruta</h2>
+            <div class="lang-card" onclick="selectLang('Inglés')"><span class="flag">🇺🇸</span> Inglés</div>
+            <div class="lang-card" onclick="selectLang('Francés')"><span class="flag">🇫🇷</span> Francés</div>
+            <div class="lang-card" onclick="selectLang('Japonés')"><span class="flag">🇯🇵</span> Japonés</div>
         </div>
 
-        <div id="shop" class="screen wardrobe">
+        <!-- PANTALLA 2: RUTA (5 NIVELES) -->
+        <div id="screen-path" class="screen">
+            <h2 id="path-title">Ruta</h2>
+            <div class="path-map">
+                <button class="node" onclick="startLesson()">1</button><div class="connector"></div>
+                <button class="node" onclick="startLesson()">2</button><div class="connector"></div>
+                <button class="node" onclick="startLesson()">3</button><div class="connector"></div>
+                <button class="node" onclick="startLesson()">4</button><div class="connector"></div>
+                <button class="node" onclick="startLesson()" style="background:var(--duo-purple); box-shadow:0 7px 0 #a468cc">🏆</button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 3: JUEGO -->
+        <div id="screen-game" class="screen">
+            <div class="progress-bar"><div id="progress-fill"></div></div>
+            <h3 id="question-txt">Cargando...</h3>
+            <div id="options-box"></div>
+        </div>
+
+        <!-- PANTALLA 4: VESTIDOR -->
+        <div id="screen-shop" class="screen">
             <h2>Vestidor</h2>
-            <div class="avatar-main" id="avatar-img">🦉</div>
-            <div class="items">
-                <div class="item-card" onclick="setAvatar('🦉')">Original</div>
-                <div class="item-card" onclick="setAvatar('🦊')">Zorro</div>
-                <div class="item-card" onclick="setAvatar('🦖')">Dino</div>
-                <div class="item-card" onclick="setAvatar('🥷')">Ninja</div>
+            <div class="avatar-preview" id="my-avatar">🦉</div>
+            <div class="skin-grid">
+                <div class="skin-item" onclick="setSkin('🦉')">Original</div>
+                <div class="skin-item" onclick="setSkin('🦊')">Zorro</div>
+                <div class="skin-item" onclick="setSkin('🐸')">Rana</div>
+                <div class="skin-item" onclick="setSkin('🐱')">Gato</div>
             </div>
         </div>
     </div>
 
-    <nav>
-        <button class="nav-btn active" onclick="ver('home', this)">🏠</button>
-        <button class="nav-btn" onclick="ver('shop', this)">👕</button>
+    <nav id="main-nav" style="display:none">
+        <button class="nav-btn active" onclick="show('screen-path', this)">🏠</button>
+        <button class="nav-btn" onclick="show('screen-shop', this)">👕</button>
+        <button class="nav-btn" onclick="location.reload()">🌐</button>
     </nav>
 
     <script>
-        // Cargar datos guardados
-        let racha = parseInt(localStorage.getItem('racha')) || 0;
-        let ultimaVez = localStorage.getItem('ultimaVez'); // Guardamos la fecha en milisegundos
+        const db = {
+            'Inglés': [
+                {q:"¿Cómo se dice 'Manzana'?", a:["Apple", "Pear", "Banana"], c:"Apple"},
+                {q:"Traduce 'Azul'", a:["Red", "Blue", "Green"], c:"Blue"},
+                {q:"¿Cómo se dice 'Hola'?", a:["Bye", "Hello", "Thanks"], c:"Hello"},
+                {q:"Traduce 'Gato'", a:["Dog", "Bird", "Cat"], c:"Cat"},
+                {q:"¿Cómo se dice 'Uno'?", a:["One", "Two", "Three"], c:"One"}
+            ],
+            'Francés': [
+                {q:"¿Cómo se dice 'Hola'?", a:["Merci", "Bonjour", "Chat"], c:"Bonjour"},
+                {q:"Traduce 'Agua'", a:["Eau", "Vin", "Pain"], c:"Eau"},
+                {q:"¿Cómo se dice 'Gracias'?", a:["Oui", "Non", "Merci"], c:"Merci"},
+                {q:"Traduce 'Perro'", a:["Chat", "Chien", "Loup"], c:"Chien"},
+                {q:"Traduce 'Sí'", a:["Oui", "Non", "Moi"], c:"Oui"}
+            ],
+            'Japonés': [
+                {q:"¿Cómo se dice 'Hola'?", a:["Konnichiwa", "Arigato", "Neko"], c:"Konnichiwa"},
+                {q:"Traduce 'Gato'", a:["Inu", "Neko", "Tori"], c:"Neko"},
+                {q:"Traduce 'Agua'", a:["Mizu", "Hi", "Ki"], c:"Mizu"},
+                {q:"¿Cómo se dice 'Gracias'?", a:["Hai", "Gomen", "Arigato"], c:"Arigato"},
+                {q:"Traduce 'Perro'", a:["Neko", "Inu", "Uma"], c:"Inu"}
+            ]
+        };
 
-        function actualizarUI() {
-            document.getElementById('racha-num').innerText = racha;
-            const streakStat = document.getElementById('streak-stat');
-            
-            // Si la racha es mayor a 0, poner el fuego naranja
-            if (racha > 0) {
-                streakStat.className = "stat streak-fire";
-            } else {
-                streakStat.className = "stat streak-gray";
+        let currentLang = "";
+        let currentQuiz = [];
+        let qIndex = 0;
+        let lives = 5;
+        let racha = parseInt(localStorage.getItem('sb_racha')) || 0;
+        let lastTime = localStorage.getItem('sb_time');
+
+        function initRacha() {
+            if (lastTime) {
+                let diff = (new Date().getTime() - lastTime) / (1000 * 60 * 60);
+                if (diff > 24) { racha = 0; localStorage.setItem('sb_racha', 0); }
             }
+            document.getElementById('racha-val').innerText = racha;
+            document.getElementById('streak-ui').className = racha > 0 ? "stat streak-on" : "stat";
         }
 
-        function revisarRacha() {
-            if (ultimaVez) {
-                let ahora = new Date().getTime();
-                let diferenciaHoras = (ahora - ultimaVez) / (1000 * 60 * 60);
-
-                // Si pasaron más de 24 horas, la racha vuelve a 0
-                if (diferenciaHoras > 24) {
-                    racha = 0;
-                    localStorage.setItem('racha', 0);
-                    alert("¡Oh no! Pasaron más de 24 horas y perdiste tu racha. 😢");
-                }
-                
-                document.getElementById('msg-tiempo').innerText = "Última práctica: hace " + Math.floor(diferenciaHoras) + " horas";
-            }
-            actualizarUI();
+        function selectLang(l) {
+            currentLang = l;
+            document.getElementById('path-title').innerText = "Ruta de " + l;
+            document.getElementById('main-nav').style.display = 'flex';
+            show('screen-path');
         }
 
-        function hacerLeccion() {
+        function startLesson() {
+            if(lives <= 0) return alert("¡Sin vidas! Recarga la página.");
+            currentQuiz = db[currentLang].sort(() => 0.5 - Math.random());
+            qIndex = 0;
+            show('screen-game');
+            renderQ();
+        }
+
+        function renderQ() {
+            if(qIndex >= 5) return win();
+            let q = currentQuiz[qIndex];
+            document.getElementById('question-txt').innerText = q.q;
+            document.getElementById('progress-fill').style.width = (qIndex * 20) + "%";
+            const box = document.getElementById('options-box');
+            box.innerHTML = "";
+            q.a.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = "option-btn";
+                b.innerText = opt;
+                b.onclick = () => {
+                    if(opt === q.c) { qIndex++; renderQ(); }
+                    else { lives--; document.getElementById('vidas-val').innerText = lives; alert("¡Error! ❤️-1"); if(lives<=0) show('screen-path'); }
+                };
+                box.appendChild(b);
+            });
+        }
+
+        function win() {
             racha++;
-            ultimaVez = new Date().getTime(); // Guardar hora actual
-            
-            localStorage.setItem('racha', racha);
-            localStorage.setItem('ultimaVez', ultimaVez);
-            
-            actualizarUI();
-            alert("¡Muy bien! Racha de " + racha + " días.");
+            lastTime = new Date().getTime();
+            localStorage.setItem('sb_racha', racha);
+            localStorage.setItem('sb_time', lastTime);
+            initRacha();
+            alert("¡Excelente! +1 a tu racha.");
+            show('screen-path');
         }
 
-        function ver(id, btn) {
+        function show(id, btn) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            if(btn) { document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
         }
 
-        function setAvatar(e) {
-            document.getElementById('avatar-img').innerText = e;
-        }
+        function setSkin(s) { document.getElementById('my-avatar').innerText = s; }
 
-        // Ejecutar al abrir la app
-        revisarRacha();
+        initRacha();
     </script>
 </body>
 </html>
