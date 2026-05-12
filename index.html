@@ -1,0 +1,240 @@
+# Spybose2.0
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spybose - Aprende Idiomas</title>
+    <style>
+        :root {
+            --duo-green: #58cc02;
+            --duo-blue: #1cb0f6;
+            --duo-purple: #ce82ff;
+            --duo-orange: #ff9600;
+            --duo-gray: #afafaf;
+            --duo-border: #e5e5e5;
+            --text-dark: #3c3c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: white;
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-bottom: 2px solid var(--duo-border);
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: sticky;
+            top: 0; z-index: 100;
+        }
+
+        .stat { font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
+        .stat.gems { color: var(--duo-blue); }
+        .stat.streak { color: var(--duo-orange); }
+
+        /* --- CONTENEDOR DE PANTALLAS --- */
+        .main-container {
+            width: 100%;
+            max-width: 500px;
+            padding-bottom: 100px;
+        }
+
+        .screen { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- PANTALLA: RUTA (MAPA) --- */
+        .path-map {
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+        }
+
+        .lesson-node {
+            width: 80px; height: 75px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 2rem;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            transition: transform 0.1s;
+        }
+        
+        .lesson-node::after {
+            content: ''; position: absolute; bottom: -6px; width: 100%; height: 100%;
+            border-radius: 50%; z-index: -1;
+        }
+
+        .node-green { background: var(--duo-green); box-shadow: 0 8px 0 #46a302; color: white; }
+        .node-blue { background: var(--duo-blue); box-shadow: 0 8px 0 #168dc3; color: white; }
+        .node-purple { background: var(--duo-purple); box-shadow: 0 8px 0 #a468cc; color: white; }
+
+        .lesson-node:active { transform: translateY(4px); box-shadow: 0 4px 0 #46a302; }
+
+        .connector { width: 8px; height: 30px; background-color: var(--duo-border); border-radius: 4px; }
+
+        /* --- PANTALLA: VESTIDOR (TIENDA/PERFIL) --- */
+        .wardrobe-container {
+            text-align: center;
+            background: #f1f7ff;
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid var(--duo-blue);
+        }
+
+        .character-preview {
+            font-size: 80px;
+            margin-bottom: 20px;
+            background: white;
+            width: 150px;
+            height: 150px;
+            line-height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            border: 5px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .inventory {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .item-card {
+            background: white;
+            padding: 15px;
+            border: 2px solid var(--duo-border);
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        .item-card:hover { border-color: var(--duo-blue); }
+
+        /* --- NAVEGACIÓN INFERIOR --- */
+        nav.bottom-nav {
+            position: fixed; bottom: 0; width: 100%; max-width: 500px;
+            background: white; border-top: 2px solid var(--duo-border);
+            display: flex; justify-content: space-around; padding: 15px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            font-size: 1.8rem; background: none; border: none;
+            cursor: pointer; color: var(--duo-gray);
+            transition: 0.2s;
+        }
+
+        .nav-item.active { color: var(--duo-blue); transform: scale(1.2); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="stat streak">🔥 <span id="streak-count">1</span></div>
+        <div class="stat gems">💎 <span id="coin-count">150</span></div>
+        <div class="stat">🇺🇸</div>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- PANTALLA DE RUTA -->
+        <div id="path" class="screen active">
+            <h2 style="text-align: center;">Unidad 1: Saludos</h2>
+            <div class="path-map">
+                <button class="lesson-node node-green" onclick="alert('¡Lección iniciada!')">⭐</button>
+                <div class="connector"></div>
+                <button class="lesson-node node-green" onclick="alert('¡Lección iniciada!')">📖</button>
+                <div class="connector"></div>
+                <button class="lesson-node node-blue">🎧</button>
+                <div class="connector"></div>
+                <button class="lesson-node node-purple">🏆</button>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE VESTIDOR -->
+        <div id="wardrobe" class="screen">
+            <h2 style="text-align: center;">Tu Vestidor</h2>
+            <div class="wardrobe-container">
+                <div class="character-preview" id="char-icon">🦉</div>
+                <h3>Personaliza tu avatar</h3>
+                <div class="inventory">
+                    <div class="item-card" onclick="changeSkin('🦉')">
+                        <p>Original</p>
+                        <span>Comprado</span>
+                    </div>
+                    <div class="item-card" onclick="changeSkin('🦜')">
+                        <p>Tropical</p>
+                        <span>💎 50</span>
+                    </div>
+                    <div class="item-card" onclick="changeSkin('🐧')">
+                        <p>Ártico</p>
+                        <span>💎 100</span>
+                    </div>
+                    <div class="item-card" onclick="changeSkin('🦖')">
+                        <p>Dino-Spy</p>
+                        <span>💎 500</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE RANKING (EXTRA) -->
+        <div id="ranking" class="screen">
+            <h2 style="text-align: center;">División Bronce</h2>
+            <p style="text-align: center; color: gray;">¡Llega al top 3 para subir de liga!</p>
+            <div style="padding: 20px; border: 2px solid #eee; border-radius: 15px;">
+                <p>1. Tú - 150 XP</p>
+                <hr>
+                <p>2. Alumno_01 - 120 XP</p>
+                <hr>
+                <p>3. Spybose_User - 80 XP</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MENÚ DE NAVEGACIÓN -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showScreen('path', this)">🏠</button>
+        <button class="nav-item" onclick="showScreen('ranking', this)">🏆</button>
+        <button class="nav-item" onclick="showScreen('wardrobe', this)">👕</button>
+    </nav>
+
+    <script>
+        function showScreen(screenId, btn) {
+            // Ocultar todas las pantallas
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            // Mostrar la seleccionada
+            document.getElementById(screenId).classList.add('active');
+            
+            // Actualizar botones de navegación
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Scroll al inicio
+            window.scrollTo(0,0);
+        }
+
+        function changeSkin(emoji) {
+            document.getElementById('char-icon').innerText = emoji;
+            alert("¡Avatar actualizado!");
+        }
+    </script>
+</body>
+</html>
